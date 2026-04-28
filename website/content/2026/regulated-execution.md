@@ -15,9 +15,9 @@ tags = ["computer-architecture", "execution-model"]
 author = {name = "Jennifer Brana", url = "" }
 # The committee specification is  a list of objects similar to the author.
 committee = [
-    {name = "Myra Dotzel", url = ""},
-    {name = "Justine Sherry", url = ""},
-    {name = "Phillip Gibbons", url = ""}
+    {name = "Myra Dotzel", url = "https://www.andrew.cmu.edu/user/mdotzel/"},
+    {name = "Justine Sherry", url = "https://www.justinesherry.com/"},
+    {name = "Phillip Gibbons", url = "https://www.cs.cmu.edu/~gibbons/"}
 ]
 +++
 
@@ -256,7 +256,7 @@ We represent a program as a directed graph of operations and
 dependencies. 
 
 **Nodes.**
-A program is defined as a finite set of operations $O$.
+A program is defined as a finite set of operations O.
 An operation denotes a unit of work that may occupy machine state.
 Operations may be primitive instructions or
 structured _super-operations_ that encapsulate subgraphs 
@@ -303,7 +303,7 @@ for i = 0 ... m-1:
 *Figure 6: Dense matrix-vector multiplication (DMV) and its super-operation representation. Left: compact program form. Right: each row is a super-operation with admission (blue) and retirement (orange) dependencies. Internal operations execute according to local dataflow, exposing parallelism within each row while preserving controlled visibility across rows.*
 
 Figure 6 shows how this structure is captured using
-super-operations for a $3 \times 3$ instance. Each shaded region corresponds to
+super-operations for a 3x3 instance. Each shaded region corresponds to
 one iteration of the outer loop (one row computation).
 
 The blue edges at the top of each region represent _admission
@@ -337,7 +337,7 @@ execution and visibility.
 
 ## Visibility, Speculation, and Publication
 
-The program separates execution from publication by treating retirement as the point at which results become globally observable. Correctness is enforced by constraining publication rather than execution: memory ordering, for example, is captured through retire$\rightarrow$retire constraints, ensuring results appear in the required order even if they execute out of order. This decoupling allows execution to proceed ahead of full knowledge, with correctness checked only at publication.
+The program separates execution from publication by treating retirement as the point at which results become globally observable. Correctness is enforced by constraining publication rather than execution: memory ordering, for example, is captured through retire--\>retire constraints, ensuring results appear in the required order even if they execute out of order. This decoupling allows execution to proceed ahead of full knowledge, with correctness checked only at publication.
 
 Under this view, speculation is simply execution prior to retirement. Operations may execute before all dependencies or control conditions are resolved, carrying uncertainty as part of their live state, as long as these uncertainties are resolved before results become visible. This shifts correctness enforcement to publication, allowing forward progress without stalling on unresolved conditions.
 
@@ -354,18 +354,18 @@ In Table 1, we show how a range of architectures can be expressed as distinct co
 |--------------------|---------------------|------------------|---------------|-------------------|------------|
 | Pure Von Neumann (vN) | Instruction | CF | CF | CF (In order) | Control-flow admission |
 | Out-of-Order (OoO) vN | Instruction | Relaxed CF | DF | CF (In order) | Retirement serialization |
-| OoO w/ OoO Retire[3] | Instruction | Relaxed CF | DF | DF (As-ready) | State capacity |
+| OoO w/ OoO Retire[^ooo-commit] | Instruction | Relaxed CF | DF | DF (As-ready) | State capacity |
 | Pure Dataflow | Instruction | DF | DF | DF (As-ready) | State capacity |
 | vN w/ Threads | Thread / Instruction | Relaxed CF | CF (outer), CF (inner) | CF (Join/async) | Control-flow admission |
 | OoO w/ Threads | Thread / Instruction | Relaxed CF | CF (outer), DF (inner) | CF (Join/async) | Retirement serialization |
-| WaveScalar[6] | Wave / Instruction | Relaxed CF | DF | CF (Wave-ordered) | Retirement serialization |
-| Tyr[1] | Region / Instruction | Per-region Relaxed CF | DF | DF (Independent) | State capacity |
+| WaveScalar[^wavescalar] | Wave / Instruction | Relaxed CF | DF | CF (Wave-ordered) | Retirement serialization |
+| Tyr[^tyr] | Region / Instruction | Per-region Relaxed CF | DF | DF (Independent) | State capacity |
 
 *Table 1: Architectures expressed using the Stateflow model, including dominant bottleneck.*
 
 To compare performance across architectures, we instantiate Stateflow as a 
 cross-paradigm simulator, 
-following a limit study methodology[2][4][5]. 
+following a limit study methodology[^ddg],[^lam],[^ilp-limits]. 
 Given a program trace, we evaluate each policy configuration in terms of 
 runtime and peak live state. 
 Figure 1 plots runtime versus live state, exposing the achievable 
@@ -450,26 +450,15 @@ I want to thank my Writing Skills committee, Justine Sherry, Phil Gibbons, and M
 
 ## References
 
-[1] Nikhil Agarwal, Mitchell Fream, Souradip Ghosh, Brian C. Schwedock, and Nathan Beckmann.  
-*The Tyr Dataflow Architecture: Improving Locality by Taming Parallelism.*  
-In MICRO, 2024.
+[^ooo-commit]: A. Cristal, D. Ortega, J. Llosa, and M. Valero, “Out-of-Order Commit Processors,” in HPCA, 2004. url: https://doi.org/10.1109/HPCA.2004.10008.
 
-[2] Todd M. Austin and Gurindar S. Sohi.  
-*Dynamic Dependency Analysis of Ordinary Programs.*  
-In ISCA, 1992.
+[^wavescalar]: S. Swanson, K. Michelson, A. Schwerin, and M. Oskin, “WaveScalar,” in MICRO, 2003. doi: 10.1109/MICRO.2003.1253203.
 
-[3] A. Cristal, D. Ortega, J. Llosa, and M. Valero.  
-*Out-of-Order Commit Processors.*  
-In HPCA, 2004.
+[^tyr]: N. Agarwal, M. Fream, S. Ghosh, B. C. Schwedock, and N. Beckmann, “The Tyr Dataflow Architecture: Improving Locality by Taming Parallelism,” in MICRO, 2024. url: https://doi.org/10.1109/MICRO61859.2024.00089. 
 
-[4] Monica S. Lam and Robert P. Wilson.  
-*Limits of Control Flow on Parallelism.*  
-In ISCA, 1992.
+[^ddg]: T. M. Austin and G. S. Sohi, “Dynamic Dependency Analysis of Ordinary Programs,” in ISCA, 1992. url: https://doi.org/10.1145/139669.140395.
 
-[5] Matthew A. Postiff, David A. Greene, Gary S. Tyson, and Trevor N. Mudge.  
-*The Limits of Instruction Level Parallelism in SPEC95 Applications.*  
-SIGARCH Computer Architecture News, 1999.
+[^lam]: M. S. Lam and R. P. Wilson, “Limits of Control Flow on Parallelism,” in ISCA, 1992. url: https://doi.org/10.1145/139669.139702.
 
-[6] S. Swanson, K. Michelson, A. Schwerin, and M. Oskin.  
-*WaveScalar.*  
-In MICRO, 2003.
+[^ilp-limits]: M. A. Postiff, D. A. Greene, G. S. Tyson, and T. N. Mudge, “The Limits of Instruction Level Parallelism in SPEC95 Applications,” SIGARCH Computer Architecture News, 1999. url: https://doi.org/10.1145/309758.309771.
+
